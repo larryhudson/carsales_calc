@@ -1,5 +1,5 @@
 # carsales_calc
-Python script that scrapes Carsales.com.au to  generate a spreadsheet showing the resale value of a car
+Python script that scrapes Carsales.com.au to  generate a spreadsheet showing the resale value of a car. Also working on a Django site that will do a similar thing.
 
 # What it does
 * Creates a config file for preferred settings: State, Transmission, Price range, Kms range
@@ -11,3 +11,6 @@ Python script that scrapes Carsales.com.au to  generate a spreadsheet showing th
 * Generate graph to show resale value
 * Compare each car to the average, to show which ones are good deals
 * Add RWC / Rego search
+* Recreate selenium-webdriver functionality with BeautifulSoup for Django
+* Add stuff like recent searches, popular cars to Django homepage
+* Maybe add Bootstrap theme?

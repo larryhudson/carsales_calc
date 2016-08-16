@@ -64,13 +64,34 @@ class Search(models.Model):
 # 	def __str__(self):
 # 		return self.search_string
 
-# class Car(models.Model):
-# 	search = models.ForeignKey(Search,on_delete=models.CASCADE)
-# 	car_make = models.ForeignKey
-# 	car_model = models.ForeignKey
-# 	transmission = models.ForeignKey
-# 	price = models.IntegerField
-# 	kms = models.IntegerField
-# 	state = models.Foreignkey
+class Car(models.Model):
+	search = models.ForeignKey(Search,on_delete=models.CASCADE)
+	# make, model, transmission, state can be retrieved from the search
+	# car_make = models.ForeignKey
+	# car_model = models.ForeignKey
+	# transmission = models.ForeignKey
+	# state = models.ForeignKey
+	name = models.CharField(max_length=50, default=0)
+	link = models.CharField(max_length=50, default=0)
+	year = models.IntegerField(default=0)
+	price = models.IntegerField(default=0)
+	kms = models.IntegerField(default=0)
+	
+	@property
+	def make(self):
+		return self.search.car_make
+    
+	@property
+	def model(self):
+		return self.search.car_model
+    
+	@property
+	def transmission(self):
+		return self.search.transmission
+    
+	@property
+	def state(self):
+		return self.search.state
+	
 	
 

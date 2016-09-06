@@ -5,10 +5,7 @@ import configparser
 import os.path
 import numpy
 from collections import namedtuple
-
-transmission_switch = True
-price_switch = True
-
+import matplotlib.pyplot as plt
 
 def get_average(list):
     price_list = []
@@ -19,7 +16,21 @@ def get_average(list):
 
 
 def main():
-    driver = webdriver.Firefox()
+    firefox_profile = webdriver.FirefoxProfile()
+
+    firefox_profile.add_extension('quickjava.xpi')
+    firefox_profile.set_preference("thatoneguydotnet.QuickJava.curVersion", "2.1.0") ## Prevents loading the 'thank you for installing screen'
+    firefox_profile.set_preference("thatoneguydotnet.QuickJava.startupStatus.Images", 2)  ## Turns images off
+    firefox_profile.set_preference("thatoneguydotnet.QuickJava.startupStatus.AnimatedImage", 2)  ## Turns animated images off
+    firefox_profile.set_preference("thatoneguydotnet.QuickJava.startupStatus.Flash", 2)  ## Flash
+    firefox_profile.set_preference("thatoneguydotnet.QuickJava.startupStatus.Java", 2)  ## Java
+    firefox_profile.set_preference("thatoneguydotnet.QuickJava.startupStatus.Silverlight", 2)  ## Silverlight
+
+
+    driver = webdriver.Firefox(firefox_profile)
+
+    transmission_switch = True
+    price_switch = True
 
     # setup config file. if it exists, load it
     config = configparser.ConfigParser()
@@ -103,6 +114,7 @@ def main():
         page_count = 1
     current_page = 1
     car_list = []
+    tuple_list = []
     Car = namedtuple("Car", ['link', 'title', 'year', 'kms', 'price'])
 
     while current_page <= page_count:
@@ -120,72 +132,90 @@ def main():
             car_price = int(car.find_elements_by_css_selector('div.price')[0].text.strip("$*").replace(",",""))
             car_kms = int(car.find_elements_by_css_selector('div.feature-text')[0].text.strip(" km").replace(",",""))
             car_tuple = Car(car_link, car_title, car_year, car_kms, car_price)
-            car_list.append(car_tuple)
+            tuple_list.append(car_tuple)
+            car_list.append({
+                'year': car_year,
+                'kms': car_kms,
+                'price': car_price,
+                })
         if current_page < page_count:
             pagination_div = driver.find_elements_by_css_selector("div.pagination")[0]
             next_page_link = pagination_div.find_elements_by_partial_link_text("Next")[0].get_attribute('href')
             driver.get(next_page_link)
         current_page += 1
 
-    by_year = []
-    years_done = []
-    for car in car_list:
-        year_list = []
-        for sublist in car_list:
-            if car[2] == sublist[2]:
-                year_list.append(sublist)
-        if not car[2] in years_done:
-            by_year.append(year_list)
-            years_done.append(car[2])
+    N = 50
+    x = [x['year'] for x in car_list]
+    # x_axis.count(year)
+    y = [x['price'] for x in car_list]
+    area = numpy.pi * (5 * numpy.random.rand(N))**2
 
-    # link, title, year, kms, price
-    now = datetime.datetime.now()
-    now_string = now.strftime("%d-%m-%y %H.%M")
-    workbook_filename = user_make + ' ' + user_model + ' ' + now_string + '.xlsx'
-    print("Creating spreadsheet", workbook_filename)
-    workbook = xlsxwriter.Workbook(workbook_filename)
-    worksheet = workbook.add_worksheet()
+    plt.scatter(x, y, s=area)
+    z = numpy.polyfit(x, y, 1)
+    p = numpy.poly1d(z)
 
-    bold = workbook.add_format({'bold': 1})
-    url_format = workbook.add_format({'font_color': 'blue','underline': 1})
+    plt.plot(x,p(x),"r--")
 
-    worksheet.write('A1', 'Link', bold)
-    worksheet.write('B1', 'Year', bold)
-    worksheet.write('C1', 'Kilometres', bold)
-    worksheet.write('D1', 'Price', bold)
+    plt.show()
+    # by_year = []
+    # years_done = []
+    # for car in car_list:
+    #     year_list = []
+    #     for sublist in car_list:
+    #         if car[2] == sublist[2]:
+    #             year_list.append(sublist)
+    #     if not car[2] in years_done:
+    #         by_year.append(year_list)
+    #         years_done.append(car[2])
+    #
+    # # link, title, year, kms, price
+    # now = datetime.datetime.now()
+    # now_string = now.strftime("%d-%m-%y %H.%M")
+    # workbook_filename = user_make + ' ' + user_model + ' ' + now_string + '.xlsx'
+    # print("Creating spreadsheet", workbook_filename)
+    # workbook = xlsxwriter.Workbook(workbook_filename)
+    # worksheet = workbook.add_worksheet()
+    #
+    # bold = workbook.add_format({'bold': 1})
+    # url_format = workbook.add_format({'font_color': 'blue','underline': 1})
+    #
+    # worksheet.write('A1', 'Link', bold)
+    # worksheet.write('B1', 'Year', bold)
+    # worksheet.write('C1', 'Kilometres', bold)
+    # worksheet.write('D1', 'Price', bold)
+    #
+    # row = 1
+    # col = 0
+    #
+    # for car in car_list:
+    #     row = car_list.index(car) + 1
+    #     worksheet.write_url(row, col, car.link, url_format, car.title)
+    #     worksheet.write_number(row, col + 1, car.year)
+    #     worksheet.write_number(row, col + 2, car.kms)
+    #     worksheet.write_number(row, col + 3, car.price)
+    #
+    #
+    # worksheet2 = workbook.add_worksheet()
+    #
+    # worksheet2.write('A1', 'Year', bold)
+    # worksheet2.write('B1', 'Average', bold)
+    # worksheet2.write('C1', 'Count', bold)
+    #
+    # row = 1
+    # col = 0
+    #
+    # for year in by_year:
+    #     row = by_year.index(year) + 1
+    #     average = get_average(year)
+    #     car_num = len(year)
+    #     worksheet2.write_number(row, col, year[0][2])
+    #     worksheet2.write_number(row, col + 1, average)
+    #     worksheet2.write_number(row, col + 2, car_num)
+    #
+    #
+    #
+    # print("Saving spreadsheet")
+    # workbook.close()
 
-    row = 1
-    col = 0
-
-    for car in car_list:
-        row = car_list.index(car) + 1
-        worksheet.write_url(row, col, car.link, url_format, car.title)
-        worksheet.write_number(row, col + 1, car.year)
-        worksheet.write_number(row, col + 2, car.kms)
-        worksheet.write_number(row, col + 3, car.price)
-
-
-    worksheet2 = workbook.add_worksheet()
-
-    worksheet2.write('A1', 'Year', bold)
-    worksheet2.write('B1', 'Average', bold)
-    worksheet2.write('C1', 'Count', bold)
-
-    row = 1
-    col = 0
-
-    for year in by_year:
-        row = by_year.index(year) + 1
-        average = get_average(year)
-        car_num = len(year)
-        worksheet2.write_number(row, col, year[0][2])
-        worksheet2.write_number(row, col + 1, average)
-        worksheet2.write_number(row, col + 2, car_num)
-
-
-
-    print("Saving spreadsheet")
-    workbook.close()
-
-    if __name__ == '__main__':
-        main()
+if __name__ == '__main__':
+    main()

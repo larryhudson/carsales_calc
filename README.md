@@ -4,8 +4,11 @@ Python script that scrapes Carsales.com.au to  generate a spreadsheet showing th
 # What it does
 * Creates a config file for preferred settings: State, Transmission, Price range, Kms range
 * Populates list of search results with the car's link, price, year, kms
-* Writes each to an Excel spreadsheet
-* Records average price for each year (in second sheet)
+* Generates a Matplotlib scatter plot graph showing how price declines as the car's year goes down
+
+![Example](img/example.png?raw=true "X-axis is year, Y-axis is price")
+
+
 
 # To do list
 * Generate graph to show resale value
